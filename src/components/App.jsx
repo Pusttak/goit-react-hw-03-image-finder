@@ -1,14 +1,12 @@
 import React, { Component } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import Searchbar from './Searchbar';
+import API from '../services/api';
 import ImageGallery from './ImageGallery';
 import LoadMoreButton from 'components/LoadMoreButton';
 import Loader from 'components/Loader';
 import Modal from 'components/Modal';
 import s from './App.module.css';
-
-const API_KEY = '26702272-2d7e64543fb5f8670261a42e5';
-const BASE_URL = 'https://pixabay.com/api/';
 
 class App extends Component {
   state = {
@@ -22,30 +20,21 @@ class App extends Component {
   };
 
   componentDidUpdate(prevProps, prevState) {
-    const url = `${BASE_URL}?key=${API_KEY}&q=${this.state.imageName}&page=${this.state.page}&per_page=12&image_type=photo&orientation=horizontal`;
+    const { imageName, page } = this.state;
 
-    if (
-      prevState.imageName !== this.state.imageName &&
-      this.state.imageName !== ''
-    ) {
+    if (prevState.imageName !== imageName && imageName !== '') {
       this.setState({ images: [], page: 1 });
-      this.fetchImages(url);
+      this.fetchImages(imageName, page);
     }
 
-    if (prevState.page !== this.state.page && this.state.page !== 1) {
-      this.fetchImages(url);
+    if (prevState.page !== page && page !== 1) {
+      this.fetchImages(imageName, page);
     }
   }
 
-  fetchImages = url => {
+  fetchImages = (imageName, page) => {
     this.setState({ loader: true });
-    fetch(url)
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        }
-        return Promise.reject(new Error(response.status));
-      })
+    API(imageName, page)
       .then(images => {
         this.setState(prevState => ({
           images: [...prevState.images, ...images.hits],
